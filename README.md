@@ -32,6 +32,7 @@ Here are the actual and future features of KeyStealer
 - [x] Logging the keys in a "nice" format to %appdata%\SysWin32\
 - [x] Run hidden and at startup
 - [x] Send mail to the desired address
+- [ ] Make mail conditionnal to the internet connection
 - [ ] Encrypt/compress logs
 - [ ] GUI to configure the keylogger
 - [ ] Add support for other transfert protocols
